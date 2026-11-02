@@ -267,17 +267,28 @@ env.close()
 
 ## Result
 
-```text
+The Policy Iteration algorithm was successfully implemented using the Gymnasium FrozenLake-v1 environment.
 
-
-
-```
----
+The algorithm performed policy evaluation and policy improvement repeatedly until the optimal policy was obtained. The optimal state-value function and policy were displayed successfully.
 
 ## Inference
-```text
-
-
 ```
+The FrozenLake-v1 environment is displayed as a 4×4 grid.
+
+
+
+The agent starts from the initial state (S).
+
+
+
+The environment contains frozen cells (F), holes (H), and a goal state (G).
+
+
+
+The optimal policy displays the best direction using arrows (←, ↓, →, ↑).
+
+
+
+The optimal state-value function and policy evaluation iterations are displayed as the final output.
 ---
 
