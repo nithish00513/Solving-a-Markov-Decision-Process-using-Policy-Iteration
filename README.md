@@ -124,40 +124,143 @@ If the improved policy is the same as the old policy, the policy is considered s
 
 ## Python Program
 
-```python
+import gymnasium as gym
+import numpy as np
 
-# -------------------------------------------------
-# Policy Evaluation
-# -------------------------------------------------
+env = gym.make("FrozenLake-v1", map_name="4x4", is_slippery=True)
+env = env.unwrapped
 
+n_states = env.observation_space.n
+n_actions = env.action_space.n
 
-
-# -------------------------------------------------
-# Policy Improvement
-# -------------------------------------------------
-
-#-------------------------------------------------
-# Policy Iteration
-# -------------------------------------------------
+gamma = 0.99
+theta = 1e-8
 
 
+# 1. Policy Evaluation
+def policy_evaluation(env, policy, gamma=0.99, theta=1e-8):
+    V = np.zeros(env.observation_space.n)
+    iterations = 0
+
+    while True:
+        delta = 0
+        iterations += 1
+
+        for state in range(env.observation_space.n):
+            v = V[state]
+            new_v = 0
+
+            for action, action_prob in enumerate(policy[state]):
+                for prob, next_state, reward, terminated in env.P[state][action]:
+                    new_v += action_prob * prob * (
+                        reward + gamma * V[next_state] * (not terminated)
+                    )
+
+            V[state] = new_v
+            delta = max(delta, abs(v - V[state]))
+
+        if delta < theta:
+            break
+
+    return V, iterations
 
 
-```
+# Initial Policy Evaluation
+initial_policy = np.ones((n_states, n_actions)) / n_actions
+
+initial_V, eval_iterations = policy_evaluation(
+    env, initial_policy, gamma, theta
+)
+
+print(f"Policy Evaluation converged in {eval_iterations} iterations.")
+print("\nState-Value Function for Uniform Random Policy:")
+print(np.round(initial_V.reshape(4, 4), 4))
+
+
+# 2. Policy Improvement
+def policy_improvement(env, V, gamma=0.99):
+    n_states = env.observation_space.n
+    n_actions = env.action_space.n
+
+    policy = np.zeros((n_states, n_actions))
+
+    for state in range(n_states):
+        action_values = np.zeros(n_actions)
+
+        for action in range(n_actions):
+            for prob, next_state, reward, terminated in env.P[state][action]:
+                action_values[action] += prob * (
+                    reward + gamma * V[next_state] * (not terminated)
+                )
+
+        best_action = np.argmax(action_values)
+        policy[state, best_action] = 1.0
+
+    return policy
+
+
+# 3. Policy Iteration
+def policy_iteration(env, gamma=0.99, theta=1e-8):
+    n_states = env.observation_space.n
+    n_actions = env.action_space.n
+
+    policy = np.ones((n_states, n_actions)) / n_actions
+
+    while True:
+        V, _ = policy_evaluation(env, policy, gamma, theta)
+
+        new_policy = policy_improvement(env, V, gamma)
+
+        if np.array_equal(policy, new_policy):
+            break
+
+        policy = new_policy
+
+    return policy, V
+
+
+# 4. Print Value Function
+def print_value_function(V):
+    print("\nOptimal State-Value Function:")
+    print(np.round(V.reshape(4, 4), 4))
+
+
+# 5. Print Optimal Policy
+def print_policy(policy):
+    action_symbols = {
+        0: "←",
+        1: "↓",
+        2: "→",
+        3: "↑"
+    }
+
+    best_actions = np.argmax(policy, axis=1)
+
+    policy_grid = np.array([
+        action_symbols[action] for action in best_actions
+    ]).reshape(4, 4)
+
+    print("\nOptimal Policy:")
+    print(policy_grid)
+
+
+# Execute Policy Iteration
+optimal_policy, optimal_value_function = policy_iteration(
+    env, gamma, theta
+)
+
+print("\nName: NITHISH Kumar S")
+print("Register Number: 212224230190")
+
+print_value_function(optimal_value_function)
+print_policy(optimal_policy)
+
+env.close()
+
 
 ## Output
 
-```text
-
-Total policy iterations: 
-
-Optimal State-Value Function:
-
-
-Optimal Policy:
-
-```
-
+<img width="662" height="596" alt="image" src="https://github.com/user-attachments/assets/689e8178-194c-4673-9297-cff0d1c66123" />
 
 
 ---
